@@ -1,0 +1,972 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="接送行程">
+<meta name="theme-color" content="#1B5FAA">
+<title>接送行程</title>
+<link rel="apple-touch-icon" id="touchIcon" href="">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EDF0F3; --surface:#FFFFFF; --surface2:#F4F6F8; --ink:#16202E; --muted:#5D6B7D; --line:#D3DAE2;
+  --blue:#1B5FAA; --amber:#F2B705; --amber-ink:#221A00; --amber-soft:#FBF0CC;
+  --green:#1E7F47; --green-soft:#DDF1E5; --red:#B8322B; --red-soft:#F8E0DE;
+  --num:"Barlow Semi Condensed","SF Pro Display",system-ui,sans-serif;
+  --cjk:-apple-system,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
+  color-scheme:light dark;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0D1520; --surface:#162131; --surface2:#1D2B3E; --ink:#E8EDF3; --muted:#97A5B6; --line:#2B3B51;
+    --blue:#3B82D0; --amber:#F5C431; --amber-soft:#3A3010;
+    --green:#46B97A; --green-soft:#173826; --red:#EE6A63; --red-soft:#3E1D1D;
+  }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--cjk);font-size:16px;line-height:1.5;
+  padding-bottom:calc(env(safe-area-inset-bottom,0px) + 96px);-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+
+/* header */
+header.top{position:sticky;top:0;z-index:5;background:var(--bg);padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 10px}
+.topRow{display:flex;align-items:center;justify-content:space-between}
+h1{font-size:28px;margin:0;font-weight:700;letter-spacing:.04em}
+.iconBtn{width:44px;height:44px;border-radius:22px;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;cursor:pointer}
+.iconBtn svg{width:22px;height:22px;stroke:var(--ink)}
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:10px 0}
+.sum{background:var(--surface);border-radius:12px;padding:8px 8px;min-width:0}
+.sum b{display:block;font-family:var(--num);font-variant-numeric:tabular-nums;font-size:20px;font-weight:600;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sum span{font-size:12px;color:var(--muted)}
+.sum.due b{color:var(--red)}
+.seg{display:flex;background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:3px;gap:3px}
+.seg button{flex:1;border:0;background:transparent;padding:8px 2px;border-radius:7px;font-size:15px;cursor:pointer;color:var(--muted);white-space:nowrap}
+.seg button.on{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.15)}
+
+/* list */
+main{padding:0 16px}
+.dayHead{font-size:14px;color:var(--muted);margin:16px 2px 8px;font-weight:600}
+.ticket{display:flex;background:var(--surface);border-radius:14px;margin-bottom:12px;cursor:pointer;position:relative;overflow:visible}
+.stub{background:var(--blue);color:#fff;width:94px;flex:none;padding:12px 10px;display:flex;flex-direction:column;justify-content:center;border-radius:14px 0 0 14px}
+.stub .t{font-family:var(--num);font-variant-numeric:tabular-nums;font-size:34px;font-weight:700;line-height:1}
+.stub .d{font-size:12px;opacity:.88;margin-top:5px;line-height:1.3}
+.stub .lb{margin-top:10px;font-size:12px;line-height:1.2;opacity:.95}
+.stub .lb b{display:block;font-family:var(--num);font-variant-numeric:tabular-nums;font-size:20px;font-weight:600}
+.perf{width:0;flex:none;border-left:2px dashed var(--line);position:relative}
+.perf::before,.perf::after{content:"";position:absolute;left:-9px;width:16px;height:16px;border-radius:50%;background:var(--bg)}
+.perf::before{top:-8px}.perf::after{bottom:-8px}
+.tbody{flex:1;min-width:0;padding:12px 14px 12px 12px}
+.route{list-style:none;margin:0;padding:0}
+.route li{position:relative;padding-left:20px;font-size:15px;line-height:1.35;padding-bottom:8px}
+.route li:last-child{padding-bottom:0}
+.route li .txt{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word}
+.route li::before{content:"";position:absolute;left:2px;top:5px;width:11px;height:11px;border-radius:50%;border:2px solid var(--blue);background:var(--surface);box-sizing:border-box;z-index:1}
+.route li.p::before{background:var(--blue)}
+.route li:not(:last-child)::after{content:"";position:absolute;left:6.5px;top:14px;bottom:-4px;border-left:2px solid var(--line)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chip{font-size:13px;padding:3px 8px;border-radius:6px;background:var(--surface2);white-space:nowrap}
+.chip.air{background:var(--amber);color:var(--amber-ink);font-weight:600}
+.chip.ok{background:var(--green-soft);color:var(--green)}
+.chip.part{background:var(--amber-soft)}
+.chip.due{background:var(--red-soft);color:var(--red)}
+.warn{margin-top:8px;font-size:13px;color:var(--red);font-weight:600}
+.ticket.cancelled{opacity:.55}
+.ticket.cancelled .stub{background:var(--muted)}
+.ticket.cancelled .route .txt{text-decoration:line-through}
+.ticket.done .stub{background:var(--green)}
+.empty{text-align:center;color:var(--muted);padding:48px 16px}
+.banner{background:var(--amber-soft);border-radius:10px;padding:10px 12px;font-size:14px;margin:4px 0 8px;display:flex;gap:10px;align-items:center;justify-content:space-between}
+.fab{position:fixed;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);z-index:6;background:var(--blue);color:#fff;border:0;border-radius:28px;height:56px;padding:0 22px;font-size:17px;font-weight:600;box-shadow:0 4px 14px rgba(0,0,0,.28);cursor:pointer}
+
+/* sheets */
+.sheet{position:fixed;inset:0;z-index:20;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;
+  transform:translateY(100%);visibility:hidden;transition:transform .25s ease,visibility 0s linear .25s;
+  padding-bottom:calc(env(safe-area-inset-bottom,0px) + 28px)}
+.sheet.open{transform:none;visibility:visible;transition:transform .25s ease,visibility 0s}
+#formSheet{z-index:25}#setSheet{z-index:30}
+.sheetHead{position:sticky;top:0;z-index:2;background:var(--bg);display:flex;align-items:center;gap:4px;
+  padding:calc(env(safe-area-inset-top,0px) + 6px) 8px 6px;border-bottom:1px solid var(--line)}
+.sheetHead h2{font-size:17px;margin:0;flex:1;text-align:center}
+.txtBtn{border:0;background:transparent;color:var(--blue);font-size:17px;padding:10px 8px;cursor:pointer;min-width:64px}
+.txtBtn.strong{font-weight:700}
+.sec{background:var(--surface);border-radius:14px;margin:12px;padding:12px 14px}
+.sec h3{font-size:14px;color:var(--muted);margin:0 0 10px;font-weight:600}
+label.f{display:block;margin-bottom:10px}
+label.f>span{display:block;font-size:13px;color:var(--muted);margin-bottom:4px}
+input,select,textarea{font:inherit;font-size:16px;width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface2);color:var(--ink)}
+input,textarea{-webkit-appearance:none;appearance:none}
+input[type=date],input[type=time]{min-height:46px}
+textarea{resize:vertical}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.check{display:flex;align-items:center;gap:10px;padding:6px 0;font-size:16px;cursor:pointer}
+.check input{width:24px;height:24px;flex:none;-webkit-appearance:checkbox;appearance:auto;accent-color:var(--blue)}
+.loc{border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px}
+.locHead{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;font-weight:600}
+.mini{border:1px solid var(--line);background:var(--surface2);border-radius:8px;padding:6px 10px;font-size:14px;cursor:pointer}
+.mini.danger{color:var(--red)}
+.addBtn{width:100%;border:1.5px dashed var(--line);background:transparent;border-radius:12px;padding:12px;color:var(--blue);font-weight:600;cursor:pointer}
+.calc{font-size:14px;color:var(--muted);margin:-4px 0 4px}
+
+/* detail */
+.dHero{margin:16px 16px 4px;display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap}
+.dHero .t{font-family:var(--num);font-variant-numeric:tabular-nums;font-size:60px;font-weight:700;line-height:.85;color:var(--blue)}
+.dHero .d{font-size:16px;font-weight:600}
+.stop{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);align-items:flex-start}
+.stop:last-child{border-bottom:0}
+.k{font-size:12px;color:var(--muted)}
+.v{font-size:16px;word-break:break-word}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.btn{border:0;border-radius:10px;padding:11px 14px;font-size:15px;font-weight:600;cursor:pointer;background:var(--surface2);color:var(--ink);text-decoration:none;display:inline-flex;align-items:center;gap:6px;line-height:1.2}
+.btn.primary{background:var(--blue);color:#fff}
+.btn.air{background:var(--amber);color:var(--amber-ink)}
+.btn.danger{color:var(--red)}
+.legs div{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:4px 0}
+.legs b{font-family:var(--num);font-variant-numeric:tabular-nums;font-weight:600;font-size:18px;white-space:nowrap}
+.legs b.big{font-size:28px}
+.muted{color:var(--muted);font-size:13px;margin:6px 0 0}
+.statusSeg button{font-size:14px;padding:8px 0}
+
+/* name board */
+#board{position:fixed;inset:0;z-index:40;background:#fff;color:#000;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px}
+#board.open{display:flex}
+#board .names{font-weight:800;line-height:1.12;word-break:break-word}
+#board .sub{font-size:16px;color:#666;margin-top:20px}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 88px);transform:translateX(-50%);width:max-content;max-width:calc(100% - 32px);
+  background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:15px;z-index:60;opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.show{opacity:1}
+
+.exRow{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
+.exRow b{font-family:var(--num);font-variant-numeric:tabular-nums;font-size:18px;font-weight:600}
+.exAdd{display:grid;grid-template-columns:1fr 1.4fr;gap:8px;margin-top:12px}
+.exAdd select,.exAdd .btn{grid-column:1/-1;justify-content:center}
+details.how{margin-top:6px;font-size:14px}
+details.how summary{cursor:pointer;color:var(--blue);font-weight:600;padding:6px 0}
+details.how ol{padding-left:20px;margin:6px 0}
+details.how li{margin-bottom:6px}
+.linkRow{border-top:1px solid var(--line);padding-top:10px;margin-top:6px}
+.linkRow:first-of-type{border-top:0;margin-top:0;padding-top:0}
+@media (prefers-reduced-motion:reduce){.sheet,.sheet.open{transition:none}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="topRow">
+    <h1>接送行程</h1>
+    <button class="iconBtn" id="btnSet" aria-label="設定">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+  </div>
+  <div class="summary" id="summary"></div>
+  <div class="seg" id="filters">
+    <button data-filter="today">今日</button>
+    <button data-filter="upcoming" class="on">即將</button>
+    <button data-filter="done">已完成</button>
+    <button data-filter="all">全部</button>
+  </div>
+</header>
+
+<main>
+  <div id="banner"></div>
+  <div id="list"></div>
+</main>
+<button class="fab" id="fab">＋ 新增行程</button>
+
+<!-- Detail -->
+<section class="sheet" id="detailSheet" aria-label="行程">
+  <div class="sheetHead">
+    <button class="txtBtn" id="detailClose">關閉</button>
+    <h2>行程</h2>
+    <button class="txtBtn" id="detailEdit">編輯</button>
+  </div>
+  <div id="detailBody"></div>
+</section>
+
+<!-- Form -->
+<section class="sheet" id="formSheet" aria-labelledby="formTitle">
+  <div class="sheetHead">
+    <button class="txtBtn" id="formCancel">取消</button>
+    <h2 id="formTitle">新增行程</h2>
+    <button class="txtBtn strong" id="formSave">儲存</button>
+  </div>
+  <div class="sec"><h3>時間</h3>
+    <div class="row">
+      <label class="f"><span>日期</span><input type="date" id="f_date"></label>
+      <label class="f"><span>上車時間</span><input type="time" id="f_time"></label>
+    </div>
+  </div>
+  <div class="sec"><h3>路線</h3><div id="locs"></div></div>
+  <div class="sec"><h3>車程（可稍後填寫）</h3>
+    <div class="row">
+      <label class="f"><span>到上車點（分鐘）</span><input id="f_driveToMin" inputmode="numeric" placeholder="例如 45"></label>
+      <label class="f"><span>行程（分鐘）</span><input id="f_tripMin" inputmode="numeric" placeholder="例如 75"></label>
+    </div>
+    <div class="btns" style="margin-top:0"><button type="button" class="btn" id="formViewTrip">在地圖查看行程車程</button></div>
+  </div>
+  <div class="sec"><h3>乘客</h3>
+    <div class="row">
+      <label class="f"><span>人數</span><input type="number" id="f_pax" inputmode="numeric" min="1" max="16"></label>
+      <label class="f"><span>行李</span><input id="f_bags" placeholder="例如 2 大 1 小"></label>
+    </div>
+    <label class="f"><span>乘客姓名（每行一位）</span><textarea id="f_names" rows="2"></textarea></label>
+    <div class="row">
+      <label class="f"><span>電話</span><input type="tel" id="f_phone" placeholder="07… 或 +852…"></label>
+      <label class="f"><span>WeChat ID</span><input id="f_wechat" autocapitalize="off" autocomplete="off" spellcheck="false"></label>
+    </div>
+    <label class="check"><input type="checkbox" id="f_childSeat"> 需要兒童座椅</label>
+  </div>
+  <div class="sec"><h3>車資</h3>
+    <div class="row">
+      <label class="f"><span>總額 £</span><input id="f_total" inputmode="decimal"></label>
+      <label class="f"><span>訂金 £</span><input id="f_deposit" inputmode="decimal"></label>
+    </div>
+    <div class="calc" id="balInfo"></div>
+    <label class="check"><input type="checkbox" id="f_depPaid"> 訂金已付</label>
+    <label class="check"><input type="checkbox" id="f_balPaid"> 尾數已付</label>
+  </div>
+  <div class="sec"><h3>其他</h3>
+    <label class="f"><span>狀態</span><select id="f_status"></select></label>
+    <label class="f"><span>備註</span><textarea id="f_notes" rows="3" placeholder="例如 接機牌、特別要求"></textarea></label>
+  </div>
+</section>
+
+<!-- Settings -->
+<section class="sheet" id="setSheet" aria-label="設定">
+  <div class="sheetHead">
+    <span style="min-width:64px"></span>
+    <h2>設定</h2>
+    <button class="txtBtn strong" id="setClose">完成</button>
+  </div>
+  <div class="sec"><h3>時間</h3>
+    <div class="row">
+      <label class="f"><span>提早出發緩衝（分鐘）</span><input id="s_buffer" type="number" inputmode="numeric" min="0"></label>
+      <label class="f"><span>提醒提前（分鐘）</span><input id="s_remLead" type="number" inputmode="numeric" min="0"></label>
+    </div>
+    <p class="muted" style="margin-top:0">建議出發時間 = 上車時間 − 到上車點車程 − 緩衝。提醒會在建議出發時間之前響起。</p>
+  </div>
+  <div class="sec"><h3>導航</h3>
+    <label class="f"><span>導航程式</span>
+      <select id="s_nav">
+        <option value="google">Google 地圖 App</option>
+        <option value="apple">Apple 地圖</option>
+        <option value="waze">Waze</option>
+        <option value="web">Google 地圖（網頁連結）</option>
+      </select>
+    </label>
+  </div>
+  <div class="sec"><h3>提醒事項</h3>
+    <label class="f"><span>捷徑名稱</span><input id="s_shortcut" autocomplete="off"></label>
+    <details class="how"><summary>如何設定「接送提醒」捷徑（只需做一次）</summary>
+      <ol>
+        <li>打開「捷徑」App，按右上角「＋」新增捷徑，命名為「接送提醒」。</li>
+        <li>加入動作「分割文字」(Split Text)：分割「捷徑輸入」，分隔符號選「新行」。</li>
+        <li>加入「從列表取得項目」(Get Item from List)：取得「第一個項目」。</li>
+        <li>再加入「從列表取得項目」：對象選第 2 步的「分割文字」，取得「索引處的項目」，索引填 2。</li>
+        <li>加入「從輸入取得日期」(Get Dates from Input)：對象選第 4 步的結果。</li>
+        <li>加入「加入新的提醒事項」(Add New Reminder)：標題選第 3 步的結果；開啟「提醒」並把日期設為第 5 步的結果；備註選「捷徑輸入」。</li>
+        <li>完成。回到這裡，在任何行程按「加入提醒事項」測試。</li>
+      </ol>
+      <p class="muted">如果提醒內容是空白，請在捷徑的設定開啟「在分享表單中顯示」，接收類型選「文字」。</p>
+    </details>
+  </div>
+  <div class="sec"><h3>機場官方航班網頁</h3>
+    <div id="s_links"></div>
+    <div class="btns"><button class="btn" id="linksReset">還原預設網址</button></div>
+    <p class="muted">其他機場會開啟 Flightradar24 的機場到港／離港頁。</p>
+  </div>
+  <div class="sec"><h3>備份</h3>
+    <p class="muted" id="s_last" style="margin-top:0"></p>
+    <div class="btns"><button class="btn primary" id="doBackup">匯出備份</button><button class="btn" id="doImport">匯入備份</button></div>
+    <p class="muted">資料只存在這部手機的這個 App 內。請定期匯出備份到「檔案」或雲端硬碟。</p>
+  </div>
+</section>
+
+<div id="board" role="dialog" aria-label="接機牌"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<input type="file" id="importFile" accept="application/json,.json" hidden>
+
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const LS_J = 'drv.jobs.v1', LS_S = 'drv.settings.v1';
+
+const AIRPORTS = [
+  {c:'LHR', n:'希斯路 Heathrow', q:'Heathrow Airport', t:[['T2','Heathrow Terminal 2'],['T3','Heathrow Terminal 3'],['T4','Heathrow Terminal 4'],['T5','Heathrow Terminal 5']]},
+  {c:'LGW', n:'蓋特威克 Gatwick', q:'Gatwick Airport', t:[['北航廈 North','Gatwick Airport North Terminal'],['南航廈 South','Gatwick Airport South Terminal']]},
+  {c:'STN', n:'斯坦斯特德 Stansted', q:'London Stansted Airport', t:[]},
+  {c:'LTN', n:'盧頓 Luton', q:'London Luton Airport', t:[]},
+  {c:'LCY', n:'倫敦城市 London City', q:'London City Airport', t:[]},
+  {c:'MAN', n:'曼徹斯特 Manchester', q:'Manchester Airport', t:[['T1','Manchester Airport Terminal 1'],['T2','Manchester Airport Terminal 2'],['T3','Manchester Airport Terminal 3']]},
+  {c:'BHX', n:'伯明翰 Birmingham', q:'Birmingham Airport', t:[]},
+  {c:'BRS', n:'布里斯托 Bristol', q:'Bristol Airport', t:[]},
+  {c:'CWL', n:'卡迪夫 Cardiff', q:'Cardiff Airport', t:[]},
+  {c:'EMA', n:'東米德蘭 East Midlands', q:'East Midlands Airport', t:[]},
+  {c:'LPL', n:'利物浦 Liverpool', q:'Liverpool John Lennon Airport', t:[]},
+  {c:'NCL', n:'紐卡素 Newcastle', q:'Newcastle International Airport', t:[]},
+  {c:'LBA', n:'列斯布拉德福 Leeds Bradford', q:'Leeds Bradford Airport', t:[]},
+  {c:'SOU', n:'修咸頓 Southampton', q:'Southampton Airport', t:[]},
+  {c:'EXT', n:'艾斯特 Exeter', q:'Exeter Airport', t:[]},
+  {c:'EDI', n:'愛丁堡 Edinburgh', q:'Edinburgh Airport', t:[]},
+  {c:'GLA', n:'格拉斯哥 Glasgow', q:'Glasgow Airport', t:[]},
+  {c:'ABZ', n:'鴨巴甸 Aberdeen', q:'Aberdeen Airport', t:[]},
+  {c:'BFS', n:'貝爾法斯特國際 Belfast Intl', q:'Belfast International Airport', t:[]},
+];
+const AP = Object.fromEntries(AIRPORTS.map(a => [a.c, a]));
+/* Official live boards; editable in Settings. a = arrivals, d = departures */
+const OFFICIAL = {
+  LHR:{a:'https://www.heathrow.com/arrivals', d:'https://www.heathrow.com/departures'},
+  LGW:{a:'https://www.gatwickairport.com/flights/', d:'https://www.gatwickairport.com/flights/'},
+  STN:{a:'https://www.stanstedairport.com/flight-information/arrivals/', d:'https://www.stanstedairport.com/flight-information/departures/'},
+  LTN:{a:'https://www.london-luton.co.uk/flights/arrivals', d:'https://www.london-luton.co.uk/flights/departures'},
+  LCY:{a:'https://www.londoncityairport.com/flights/arrivals', d:'https://www.londoncityairport.com/flights/departures'},
+};
+const EXP = {parking:'停車費', airport:'機場落客／接客費', toll:'過路／過橋費', ccharge:'倫敦擠塞費', caz:'ULEZ／清潔空氣區', fuel:'燃油／充電', other:'其他'};
+const STATUS = {booked:'已預約', confirmed:'已確認', enroute:'前往中', done:'已完成', cancelled:'已取消'};
+const WD = '日一二三四五六';
+
+function load(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } }
+let jobs = load(LS_J, []);
+let S = Object.assign({buffer:10, remLead:15, nav:'google', shortcut:'接送提醒', links:{}, lastBackup:null}, load(LS_S, {}));
+delete S.key; delete S.home;
+if (!S.links || typeof S.links !== 'object') S.links = {};
+let filter = 'upcoming', draft = null, currentId = null;
+
+/* migrate v1 data (Google route results) to editable minutes */
+jobs.forEach(j => {
+  if (j.route && j.route.legs && j.driveToMin == null && j.tripMin == null){
+    const L = j.route.legs, fh = j.route.fromHome;
+    if (fh && L[0]) j.driveToMin = Math.round(L[0].s / 60);
+    const trip = fh ? L.slice(1) : L;
+    if (trip.length) j.tripMin = Math.round(trip.reduce((a,b) => a + b.s, 0) / 60);
+  }
+  delete j.route;
+  if (!Array.isArray(j.expenses)) j.expenses = [];
+});
+
+function saveJobs(){ try{ localStorage.setItem(LS_J, JSON.stringify(jobs)); }catch(e){ toast('無法儲存：手機儲存空間可能已滿', 5000); } }
+function saveSet(){ try{ localStorage.setItem(LS_S, JSON.stringify(S)); }catch(e){} }
+saveJobs(); saveSet();
+
+/* ---------- helpers ---------- */
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const pad = n => String(n).padStart(2, '0');
+const ymd = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const hm = d => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+const clone = o => JSON.parse(JSON.stringify(o));
+function pDT(j){
+  const [y,m,d] = (j.date || '1970-01-01').split('-').map(Number);
+  const [h,mi] = (j.time || '00:00').split(':').map(Number);
+  return new Date(y, m-1, d, h || 0, mi || 0);
+}
+const fmtDate = d => `${d.getMonth()+1}月${d.getDate()}日 週${WD[d.getDay()]}`;
+function dayLabel(ds){
+  const t = new Date(), tm = new Date(); tm.setDate(tm.getDate()+1);
+  const pre = ds === ymd(t) ? '今天　' : ds === ymd(tm) ? '明天　' : '';
+  return pre + fmtDate(pDT({date:ds}));
+}
+function fmtMin(m){
+  if (m == null) return '';
+  m = Math.round(m);
+  if (m < 60) return m + ' 分鐘';
+  const h = Math.floor(m/60), r = m % 60;
+  return h + ' 小時' + (r ? ' ' + r + ' 分' : '');
+}
+function money(n){
+  n = Math.round((n || 0) * 100) / 100;
+  const int = Number.isInteger(n);
+  return '£' + n.toLocaleString('en-GB', {minimumFractionDigits: int ? 0 : 2, maximumFractionDigits: 2});
+}
+const parseMoney = v => { v = String(v || '').replace(/[£,\s]/g, ''); if (v === '') return null; const n = parseFloat(v); return isNaN(n) ? null : Math.round(n*100)/100; };
+const parseMin = v => { v = String(v ?? '').trim(); if (v === '') return null; const n = parseInt(v, 10); return isNaN(n) || n < 0 ? null : n; };
+let toastT;
+function toast(msg, ms = 2400){ const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), ms); }
+
+/* ---------- locations ---------- */
+const newLoc = () => ({kind:'addr', addr:'', ap:'LHR', term:'', flight:''});
+function locQ(l){
+  if (!l) return '';
+  if (l.kind === 'air'){ const a = AP[l.ap]; if (!a) return ''; const t = a.t.find(x => x[0] === l.term); return t ? t[1] : a.q; }
+  return (l.addr || '').trim();
+}
+function locLabel(l){
+  if (!l) return '';
+  if (l.kind === 'air'){ const a = AP[l.ap]; return a ? a.n + (l.term ? ' ' + l.term : '') : ''; }
+  return (l.addr || '').trim();
+}
+const flightCode = f => (f || '').toUpperCase().replace(/\s+/g, '');
+function boardUrl(code, dir){
+  const o = Object.assign({}, OFFICIAL[code] || {}, S.links[code] || {});
+  if (o[dir]) return o[dir];
+  return `https://www.flightradar24.com/data/airports/${code.toLowerCase()}/${dir === 'a' ? 'arrivals' : 'departures'}`;
+}
+
+/* ---------- derived ---------- */
+function rinfo(j){
+  const toM = j.driveToMin, trM = j.tripMin;
+  if (toM == null && trM == null) return null;
+  const p = pDT(j).getTime();
+  return {
+    toM, trM,
+    leave: toM != null ? new Date(p - (toM + (S.buffer || 0)) * 60000) : null,
+    end: trM != null ? new Date(p + trM * 60000) : null
+  };
+}
+function pay(j){
+  if (j.total == null) return {state:'none', label:'未定價', rec:0, dep:0, bal:0};
+  const dep = j.deposit || 0, bal = j.total - dep;
+  const rec = (j.depPaid ? dep : 0) + (j.balPaid ? bal : 0);
+  if (rec >= j.total - 0.005) return {state:'ok', label:'已付清', rec, dep, bal};
+  if (rec > 0) return {state:'part', label: (j.depPaid && !j.balPaid) ? '已付訂金' : '部分已付', rec, dep, bal};
+  return {state:'due', label:'未付', rec, dep, bal};
+}
+const expSum = j => (j.expenses || []).reduce((a,x) => a + (x.amt || 0), 0);
+function clashes(){
+  const L = jobs.filter(j => j.status !== 'cancelled').sort((a,b) => pDT(a) - pDT(b));
+  const set = new Set();
+  for (let i = 1; i < L.length; i++){
+    const a = L[i-1], b = L[i], ra = rinfo(a), rb = rinfo(b);
+    const aEnd = ra && ra.end ? ra.end : pDT(a);
+    const bStart = rb && rb.leave ? rb.leave : pDT(b);
+    if (aEnd > bStart) set.add(b.id);
+  }
+  return set;
+}
+
+/* ---------- list ---------- */
+function visibleJobs(){
+  const now = Date.now(), today = ymd(new Date());
+  let L = jobs.slice();
+  if (filter === 'today') L = L.filter(j => j.date === today && j.status !== 'cancelled');
+  else if (filter === 'upcoming') L = L.filter(j => !['done','cancelled'].includes(j.status) && pDT(j).getTime() >= now - 6*3600e3);
+  else if (filter === 'done') L = L.filter(j => j.status === 'done');
+  L.sort((a,b) => pDT(a) - pDT(b));
+  if (filter === 'done' || filter === 'all') L.reverse();
+  return L;
+}
+function card(j, clash){
+  const p = pDT(j), ri = rinfo(j), py = pay(j), pts = [j.pickup, ...j.stops];
+  const names = (j.names || []).filter(Boolean);
+  let chips = `<span class="chip">👤 ${j.pax || 1}${names.length ? ' ' + esc(names[0]) + (names.length > 1 ? ' 等' : '') : ''}</span>`;
+  pts.filter(l => l.kind === 'air' && l.flight).forEach(l => chips += `<span class="chip air">✈ ${esc(flightCode(l.flight))}</span>`);
+  if (ri && ri.trM != null) chips += `<span class="chip">⏱ ${fmtMin(ri.trM)}</span>`;
+  if (py.state !== 'none') chips += `<span class="chip ${py.state}">${money(j.total)} ${py.label}</span>`;
+  if (j.status !== 'booked') chips += `<span class="chip">${STATUS[j.status]}</span>`;
+  if (j.childSeat) chips += `<span class="chip">兒童座椅</span>`;
+  return `<article class="ticket ${esc(j.status)}" data-id="${esc(j.id)}" tabindex="0">
+    <div class="stub"><div class="t">${esc(j.time)}</div><div class="d">${fmtDate(p)}</div>${ri && ri.leave ? `<div class="lb">出發<b>${hm(ri.leave)}</b></div>` : ''}</div>
+    <div class="perf"></div>
+    <div class="tbody">
+      <ol class="route">${pts.map((l,i) => `<li class="${i ? '' : 'p'}"><span class="txt">${esc(locLabel(l)) || '—'}</span></li>`).join('')}</ol>
+      <div class="chips">${chips}</div>
+      ${clash ? '<div class="warn">⚠ 可能與上一個行程時間重疊</div>' : ''}
+    </div>
+  </article>`;
+}
+function renderSummary(){
+  const d = new Date(), pre = `${d.getFullYear()}-${pad(d.getMonth()+1)}`;
+  const live = jobs.filter(j => j.status !== 'cancelled');
+  const month = live.filter(j => (j.date || '').startsWith(pre));
+  const tot = month.reduce((a,j) => a + (j.total || 0), 0);
+  const ex = jobs.filter(j => (j.date || '').startsWith(pre)).reduce((a,j) => a + expSum(j), 0);
+  const due = live.reduce((a,j) => a + (j.total != null ? j.total - pay(j).rec : 0), 0);
+  $('#summary').innerHTML =
+    `<div class="sum"><b>${month.length}</b><span>本月行程</span></div>
+     <div class="sum"><b>${money(tot)}</b><span>本月車資</span></div>
+     <div class="sum"><b>${money(ex)}</b><span>本月支出</span></div>
+     <div class="sum ${due > 0.005 ? 'due' : ''}"><b>${money(due)}</b><span>未收款</span></div>`;
+}
+function renderBanner(){
+  const days = S.lastBackup ? (Date.now() - S.lastBackup) / 864e5 : Infinity;
+  $('#banner').innerHTML = (jobs.length && days > 7)
+    ? `<div class="banner"><span>${S.lastBackup ? '已經 ' + Math.floor(days) + ' 天沒有備份' : '還沒有備份'}，資料只存在這部手機。</span><button class="mini" data-act="backup">立即備份</button></div>`
+    : '';
+}
+function render(){
+  renderSummary(); renderBanner();
+  const L = visibleJobs(), cl = clashes(), box = $('#list');
+  if (!L.length){
+    const msg = {today:'今天沒有行程。', done:'還沒有已完成的行程。'}[filter] || '還沒有行程。';
+    box.innerHTML = `<div class="empty">${msg}<div class="btns" style="justify-content:center;margin-top:14px"><button class="btn primary" data-act="new">新增行程</button></div></div>`;
+    return;
+  }
+  let h = '', last = '';
+  L.forEach(j => { if (j.date !== last){ h += `<div class="dayHead">${dayLabel(j.date)}</div>`; last = j.date; } h += card(j, cl.has(j.id)); });
+  box.innerHTML = h;
+}
+
+/* ---------- sheets ---------- */
+function openSheet(s){ const el = $(s); el.classList.add('open'); el.scrollTop = 0; document.body.style.overflow = 'hidden'; }
+function closeSheet(s){ $(s).classList.remove('open'); if (!document.querySelector('.sheet.open')) document.body.style.overflow = ''; }
+
+/* ---------- maps ---------- */
+function openUrl(u){ window.open(u, '_blank'); }
+function navigate(q){
+  if (!q) return toast('沒有地址');
+  const e = encodeURIComponent(q);
+  const u = {
+    google:`comgooglemaps://?daddr=${e}&directionsmode=driving`,
+    apple:`maps://?daddr=${e}&dirflg=d`,
+    waze:`https://waze.com/ul?q=${e}&navigate=yes`,
+    web:`https://www.google.com/maps/dir/?api=1&destination=${e}&travelmode=driving&dir_action=navigate`
+  }[S.nav] || `comgooglemaps://?daddr=${e}&directionsmode=driving`;
+  if (u.startsWith('http')) openUrl(u); else location.href = u;
+}
+/* Route preview from the pick-up point through every stop, so the driver can read the time in the map app */
+function viewTrip(origin, dests){
+  dests = dests.filter(Boolean);
+  if (!origin || !dests.length) return toast('請先填寫上車和下車地點');
+  const e = encodeURIComponent;
+  if (dests.length > 1 || S.nav === 'web' || S.nav === 'waze'){
+    let u = `https://www.google.com/maps/dir/?api=1&travelmode=driving&origin=${e(origin)}&destination=${e(dests[dests.length-1])}`;
+    if (dests.length > 1) u += '&waypoints=' + dests.slice(0, -1).map(e).join('%7C');
+    return openUrl(u);
+  }
+  if (S.nav === 'apple') location.href = `maps://?saddr=${e(origin)}&daddr=${e(dests[0])}&dirflg=d`;
+  else location.href = `comgooglemaps://?saddr=${e(origin)}&daddr=${e(dests[0])}&directionsmode=driving`;
+}
+
+/* ---------- form ---------- */
+function blankJob(){
+  const d = new Date(); d.setMinutes(0, 0, 0); d.setHours(d.getHours() + 1);
+  return {id:null, date:ymd(d), time:hm(d), pickup:newLoc(), stops:[newLoc()], pax:1, names:[], phone:'', wechat:'', bags:'', childSeat:false,
+          notes:'', total:null, deposit:null, depPaid:false, balPaid:false, status:'booked', driveToMin:null, tripMin:null, expenses:[]};
+}
+const FF = ['date','time','pax','phone','wechat','bags','notes','status'];
+function openForm(job, title){
+  draft = job ? clone(job) : blankJob();
+  if (!Array.isArray(draft.expenses)) draft.expenses = [];
+  $('#formTitle').textContent = title || (job && job.id ? '編輯行程' : '新增行程');
+  FF.forEach(k => $('#f_' + k).value = draft[k] ?? '');
+  $('#f_names').value = (draft.names || []).join('\n');
+  $('#f_total').value = draft.total ?? '';
+  $('#f_deposit').value = draft.deposit ?? '';
+  $('#f_driveToMin').value = draft.driveToMin ?? '';
+  $('#f_tripMin').value = draft.tripMin ?? '';
+  $('#f_depPaid').checked = !!draft.depPaid;
+  $('#f_balPaid').checked = !!draft.balPaid;
+  $('#f_childSeat').checked = !!draft.childSeat;
+  renderLocs(); calcBal();
+  openSheet('#formSheet');
+}
+function readForm(){
+  FF.forEach(k => draft[k] = $('#f_' + k).value);
+  draft.wechat = (draft.wechat || '').trim();
+  draft.pax = Math.max(1, parseInt(draft.pax) || 1);
+  draft.names = $('#f_names').value.split('\n').map(s => s.trim()).filter(Boolean);
+  draft.pax = Math.max(draft.pax, draft.names.length);
+  draft.total = parseMoney($('#f_total').value);
+  draft.deposit = parseMoney($('#f_deposit').value);
+  draft.driveToMin = parseMin($('#f_driveToMin').value);
+  draft.tripMin = parseMin($('#f_tripMin').value);
+  draft.depPaid = $('#f_depPaid').checked;
+  draft.balPaid = $('#f_balPaid').checked;
+  draft.childSeat = $('#f_childSeat').checked;
+}
+function calcBal(){
+  const t = parseMoney($('#f_total').value), d = parseMoney($('#f_deposit').value) || 0;
+  const el = $('#balInfo');
+  if (t == null){ el.textContent = ''; return; }
+  el.textContent = d > t ? '⚠ 訂金大於總額' : `尾數 ${money(t - d)}`;
+}
+function locEditor(l, key, title, removable){
+  const a = AP[l.ap] || AIRPORTS[0];
+  const apOpts = AIRPORTS.map(x => `<option value="${x.c}" ${x.c === l.ap ? 'selected' : ''}>${esc(x.n)} (${x.c})</option>`).join('');
+  const termSel = a.t.length
+    ? `<label class="f"><span>航廈</span><select data-f="term"><option value="">未指定</option>${a.t.map(t => `<option value="${esc(t[0])}" ${t[0] === l.term ? 'selected' : ''}>${esc(t[0])}</option>`).join('')}</select></label>` : '';
+  const body = l.kind === 'air'
+    ? `<label class="f"><span>機場</span><select data-f="ap">${apOpts}</select></label>${termSel}
+       <label class="f"><span>航班號碼</span><input data-f="flight" value="${esc(l.flight)}" placeholder="例如 BA123" autocapitalize="characters" autocomplete="off" spellcheck="false"></label>`
+    : `<label class="f"><span>地址或郵遞區號</span><textarea data-f="addr" rows="2" placeholder="門牌、街道、郵遞區號">${esc(l.addr)}</textarea></label>`;
+  return `<div class="loc" data-k="${key}">
+    <div class="locHead"><span>${title}</span>${removable ? '<button type="button" class="mini danger" data-act="rm">移除</button>' : ''}</div>
+    <div class="seg" style="margin-bottom:10px">
+      <button type="button" data-act="kind" data-v="addr" class="${l.kind === 'addr' ? 'on' : ''}">地址</button>
+      <button type="button" data-act="kind" data-v="air" class="${l.kind === 'air' ? 'on' : ''}">機場</button>
+    </div>${body}</div>`;
+}
+function renderLocs(){
+  const n = draft.stops.length;
+  let h = locEditor(draft.pickup, 'p', '上車地點', false);
+  draft.stops.forEach((l,i) => h += locEditor(l, i, n > 1 ? `下車地點 ${i+1}` : '下車地點', n > 1));
+  h += '<button type="button" class="addBtn" data-act="addStop">＋ 加一個下車地點</button>';
+  $('#locs').innerHTML = h;
+}
+function locOf(el){ const k = el.closest('.loc').dataset.k; return k === 'p' ? draft.pickup : draft.stops[+k]; }
+function onLocField(e){
+  const f = e.target.dataset.f; if (!f) return;
+  const l = locOf(e.target), v = e.target.value;
+  if (l[f] === v) return;
+  l[f] = v;
+  if (f === 'ap'){ l.term = ''; renderLocs(); }
+}
+function saveForm(){
+  readForm();
+  if (!draft.date || !draft.time) return toast('請填寫日期和上車時間');
+  if (!locQ(draft.pickup)) return toast('請填寫上車地點');
+  const filled = draft.stops.filter(l => locQ(l));
+  if (!filled.length) return toast('請填寫最少一個下車地點');
+  draft.stops = filled;
+  [draft.pickup, ...draft.stops].forEach(l => l.flight = flightCode(l.flight));
+  if (!draft.id){ draft.id = uid(); draft.createdAt = Date.now(); jobs.push(draft); }
+  else { const i = jobs.findIndex(x => x.id === draft.id); if (i >= 0) jobs[i] = draft; else jobs.push(draft); }
+  const saved = draft;
+  saveJobs(); closeSheet('#formSheet'); render();
+  if (currentId === saved.id) renderDetail();
+  toast('已儲存');
+}
+
+/* ---------- detail ---------- */
+function openDetail(id){ currentId = id; renderDetail(); openSheet('#detailSheet'); }
+function renderDetail(){
+  const j = jobs.find(x => x.id === currentId);
+  if (!j){ closeSheet('#detailSheet'); currentId = null; return; }
+  const ri = rinfo(j), py = pay(j), pts = [j.pickup, ...j.stops], names = j.names || [];
+
+  const stops = pts.map((l,i) => {
+    let fbtn = '';
+    if (l.kind === 'air'){
+      const fc = flightCode(l.flight), dir = i === 0 ? 'a' : 'd', a = AP[l.ap];
+      const src = OFFICIAL[l.ap] ? a.n.split(' ')[0] + '官方' : 'Flightradar24';
+      fbtn = `<div class="btns">
+        ${fc ? `<button class="btn air" data-act="fr24" data-f="${esc(fc)}">✈ ${esc(fc)} 航班動態</button>` : ''}
+        <button class="btn" data-act="apBoard" data-c="${esc(l.ap)}" data-d="${dir}" data-f="${esc(fc)}">${esc(src)}${dir === 'a' ? '到港' : '離港'}</button>
+      </div>`;
+    }
+    const label = i ? '下車地點' + (j.stops.length > 1 ? ' ' + i : '') : '上車地點';
+    return `<div class="stop">
+      <div style="flex:1;min-width:0"><div class="k">${label}</div><div class="v">${esc(locLabel(l))}</div>${fbtn}</div>
+      <button class="btn primary" data-act="nav" data-i="${i}">導航</button>
+    </div>`;
+  }).join('');
+
+  const drive = `<div class="row">
+      <label class="f"><span>到上車點（分鐘）</span><input data-mins="driveToMin" value="${j.driveToMin ?? ''}" inputmode="numeric" placeholder="—"></label>
+      <label class="f"><span>行程（分鐘）</span><input data-mins="tripMin" value="${j.tripMin ?? ''}" inputmode="numeric" placeholder="—"></label>
+    </div>
+    ${ri ? `<div class="legs">
+      ${ri.leave ? `<div><span>建議出發時間</span><b class="big">${hm(ri.leave)}</b></div>` : ''}
+      ${ri.trM != null ? `<div><span>行程車程</span><b>${fmtMin(ri.trM)}</b></div><div><span>預計完成</span><b>${hm(ri.end)}</b></div>` : ''}
+    </div>` : ''}
+    <div class="btns"><button class="btn" data-act="viewTrip">在地圖查看行程車程</button></div>
+    <p class="muted">「到上車點」可按上車地點的「導航」查看。預約時段的車程：在 Google 地圖按「⋯」→「設定出發或抵達時間」。${ri && ri.leave ? '出發時間已預留 ' + (S.buffer||0) + ' 分鐘。' : ''}</p>`;
+
+  const pax = `<div class="v">${names.length ? names.map(esc).join('、') : '未填姓名'}</div>
+    <p class="muted">${j.pax || 1} 位乘客${j.bags ? '，行李 ' + esc(j.bags) : ''}${j.childSeat ? '，需要兒童座椅' : ''}</p>
+    ${j.phone ? `<div class="v" style="margin-top:6px">${esc(j.phone)}</div>` : ''}
+    ${j.wechat ? `<div class="muted">WeChat：${esc(j.wechat)}</div>` : ''}
+    <div class="btns">
+      ${j.phone ? `<a class="btn primary" href="tel:${esc(telNum(j.phone))}">致電</a><button class="btn" data-act="wa">WhatsApp</button><button class="btn" data-act="waConfirm">WhatsApp 確認</button>` : ''}
+      <button class="btn" data-act="wechat">WeChat</button><button class="btn" data-act="wechatConfirm">WeChat 確認</button>
+      <button class="btn" data-act="copyConfirm">複製確認訊息</button>
+      <button class="btn" data-act="board">接機牌</button>
+    </div>`;
+
+  const mny = j.total == null ? '<p class="muted" style="margin-top:0">未定價</p>' :
+    `<div class="legs">
+      <div><span>總額</span><b class="big">${money(j.total)}</b></div>
+      ${py.dep > 0 ? `<div><span>訂金</span><b>${money(py.dep)}</b></div><div><span>尾數</span><b>${money(py.bal)}</b></div>` : ''}
+    </div>
+    ${py.dep > 0 ? `<label class="check"><input type="checkbox" data-act="depPaid" ${j.depPaid ? 'checked' : ''}> 訂金已付</label>` : ''}
+    <label class="check"><input type="checkbox" data-act="balPaid" ${j.balPaid ? 'checked' : ''}> ${py.dep > 0 ? '尾數已付' : '已付款'}</label>
+    <div style="margin-top:4px"><span class="chip ${py.state}">${py.label}</span></div>`;
+
+  const ex = j.expenses || [], exTot = expSum(j);
+  const exp = `${ex.map(x => `<div class="exRow">
+      <div style="flex:1;min-width:0"><div>${esc(EXP[x.type] || x.type)}</div>${x.note ? `<div class="muted" style="margin:0">${esc(x.note)}</div>` : ''}</div>
+      <b>${money(x.amt)}</b><button class="mini danger" data-act="exDel" data-x="${esc(x.id)}" aria-label="刪除這項支出">✕</button>
+    </div>`).join('')}
+    ${ex.length ? `<div class="legs" style="margin-top:6px"><div><span>支出合計</span><b>${money(exTot)}</b></div>${j.total != null ? `<div><span>淨收入</span><b>${money(j.total - exTot)}</b></div>` : ''}</div>` : '<p class="muted" style="margin-top:0">還沒有支出。</p>'}
+    <div class="exAdd">
+      <select id="exType">${Object.entries(EXP).map(([k,v]) => `<option value="${k}">${v}</option>`).join('')}</select>
+      <input id="exAmt" inputmode="decimal" placeholder="金額 £">
+      <input id="exNote" placeholder="備註（例如 Dartford）">
+      <button class="btn primary" data-act="exAdd">加入支出</button>
+    </div>`;
+
+  const st = `<div class="seg statusSeg">${Object.entries(STATUS).map(([k,v]) => `<button data-act="status" data-v="${k}" class="${j.status === k ? 'on' : ''}">${v}</button>`).join('')}</div>`;
+
+  $('#detailBody').innerHTML = `
+    <div class="dHero"><div class="t">${esc(j.time)}</div><div class="d">${dayLabel(j.date)}</div></div>
+    <div class="sec"><h3>狀態</h3>${st}</div>
+    <div class="sec"><h3>路線</h3>${stops}</div>
+    <div class="sec"><h3>車程</h3>${drive}</div>
+    <div class="sec"><h3>乘客</h3>${pax}</div>
+    <div class="sec"><h3>車資</h3>${mny}</div>
+    <div class="sec"><h3>支出</h3>${exp}</div>
+    ${j.notes ? `<div class="sec"><h3>備註</h3><div class="v" style="white-space:pre-wrap">${esc(j.notes)}</div></div>` : ''}
+    <div class="sec"><h3>提醒及更多</h3><div class="btns" style="margin-top:0">
+      <button class="btn" data-act="reminder">加入提醒事項</button>
+      <button class="btn" data-act="ics">加入日曆</button>
+      <button class="btn" data-act="return">建立回程</button>
+      <button class="btn" data-act="dup">複製行程</button>
+      <button class="btn danger" data-act="del">刪除</button>
+    </div></div>`;
+}
+
+/* ---------- messaging ---------- */
+const telNum = p => (p || '').replace(/[^\d+]/g, '');
+function waNum(p){
+  let s = telNum(p);
+  if (s.startsWith('+')) s = s.slice(1);
+  else if (s.startsWith('00')) s = s.slice(2);
+  else if (s.startsWith('0')) s = '44' + s.slice(1);
+  return s;
+}
+const waLink = (p, text) => 'https://wa.me/' + waNum(p) + (text ? '?text=' + encodeURIComponent(text) : '');
+const flightLine = l => l.kind === 'air' && l.flight ? `（航班 ${l.flight}）` : '';
+function confirmText(j){
+  const names = j.names || [], py = pay(j);
+  let t = `${names[0] ? names[0] + ' 您好' : '您好'}，確認您的接送預約：\n日期：${fmtDate(pDT(j))}\n時間：${j.time}\n上車：${locLabel(j.pickup)}${flightLine(j.pickup)}\n`;
+  j.stops.forEach((l,i) => t += `下車${j.stops.length > 1 ? ' ' + (i+1) : ''}：${locLabel(l)}${flightLine(l)}\n`);
+  t += `乘客：${j.pax || 1} 位\n`;
+  if (j.total != null){
+    t += `車資：${money(j.total)}`;
+    if (py.dep > 0) t += `（訂金 ${money(py.dep)}${j.depPaid ? '，已收' : ''}）`;
+    t += '\n';
+  }
+  return t + '如有更改請盡早通知，謝謝！';
+}
+async function copyText(t, silent){
+  try{ await navigator.clipboard.writeText(t); if (!silent) toast('已複製'); return true; }
+  catch(e){
+    const ta = document.createElement('textarea'); ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    let ok = false; try{ ok = document.execCommand('copy'); }catch(_){}
+    ta.remove(); if (!silent) toast(ok ? '已複製' : '未能複製'); return ok;
+  }
+}
+const openWeChat = () => setTimeout(() => { location.href = 'weixin://'; }, 350);
+
+/* ---------- board, reminders, calendar ---------- */
+function showBoard(j){
+  const names = (j.names || []).length ? j.names : ['（未填姓名）'];
+  const w = s => [...s].reduce((a,c) => a + (/[\u2E80-\u9FFF\uF900-\uFAFF\uFF00-\uFFEF]/.test(c) ? 1 : 0.58), 0);
+  const maxW = Math.max(3, ...names.map(w));
+  const vw = Math.min(30, 88 / maxW), vh = Math.min(30, 70 / (names.length * 1.15));
+  $('#board').innerHTML = `<div class="names" style="font-size:min(${vw.toFixed(1)}vw,${vh.toFixed(1)}vh)">${names.map(esc).join('<br>')}</div><div class="sub">點一下關閉。橫放手機字會更大。</div>`;
+  $('#board').classList.add('open');
+}
+function remindAt(j){
+  const ri = rinfo(j), p = pDT(j);
+  return ri && ri.leave ? new Date(ri.leave.getTime() - (S.remLead || 0) * 60000) : new Date(p.getTime() - 60 * 60000);
+}
+function tripDetails(j){
+  return [
+    '上車：' + locLabel(j.pickup) + flightLine(j.pickup),
+    '下車：' + j.stops.map(l => locLabel(l) + flightLine(l)).join(' / '),
+    '乘客：' + ((j.names || []).join('、') || '') + `（${j.pax || 1} 位）`,
+    j.phone ? '電話：' + j.phone : '',
+    j.notes || ''
+  ].filter(Boolean).join('\n');
+}
+function addReminder(j){
+  const at = remindAt(j);
+  const title = `接送 ${j.time} ${(j.names || [])[0] || ''} ${locLabel(j.pickup)}`.replace(/\s+/g, ' ').trim();
+  const text = [title, `${ymd(at)} ${hm(at)}`, tripDetails(j)].join('\n');
+  location.href = 'shortcuts://run-shortcut?name=' + encodeURIComponent(S.shortcut || '接送提醒') + '&input=text&text=' + encodeURIComponent(text);
+}
+function icsEsc(s){ return String(s || '').replace(/\\/g, '\\\\').replace(/\n/g, '\\n').replace(/,/g, '\\,').replace(/;/g, '\\;'); }
+const icsLocal = d => `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
+const icsUtc = d => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+function addCal(j){
+  const p = pDT(j), ri = rinfo(j);
+  const end = new Date(p.getTime() + ((ri && ri.trM) || 60) * 60000);
+  const lead = Math.max(0, Math.round((p - remindAt(j)) / 60000));
+  const lines = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//driver-scheduler//zh-Hant','CALSCALE:GREGORIAN','BEGIN:VEVENT',
+    `UID:${j.id}@driver-scheduler`, `DTSTAMP:${icsUtc(new Date())}`, `DTSTART:${icsLocal(p)}`, `DTEND:${icsLocal(end)}`,
+    `SUMMARY:${icsEsc('接送 ' + ((j.names || [])[0] || '') + ' ' + locLabel(j.pickup))}`,
+    `LOCATION:${icsEsc(locQ(j.pickup))}`, `DESCRIPTION:${icsEsc(tripDetails(j))}`,
+    'BEGIN:VALARM','ACTION:DISPLAY', `DESCRIPTION:${icsEsc('準備出發：' + locLabel(j.pickup))}`, `TRIGGER:-PT${lead}M`, 'END:VALARM',
+    'END:VEVENT','END:VCALENDAR'];
+  const blob = new Blob([lines.join('\r\n')], {type:'text/calendar'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = 'trip.ics';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+}
+function makeReturn(j){
+  const n = clone(j);
+  n.id = null; n.status = 'booked'; n.depPaid = false; n.balPaid = false; n.deposit = null; n.expenses = []; n.driveToMin = null;
+  n.pickup = clone(j.stops[j.stops.length - 1]); n.stops = [clone(j.pickup)];
+  [n.pickup, ...n.stops].forEach(l => l.flight = '');
+  openForm(n, '建立回程');
+}
+function duplicate(j){
+  const n = clone(j);
+  n.id = null; n.status = 'booked'; n.depPaid = false; n.balPaid = false; n.expenses = [];
+  openForm(n, '複製行程');
+}
+
+/* ---------- backup ---------- */
+async function backup(){
+  const data = JSON.stringify({app:'driver-scheduler', version:2, exportedAt:new Date().toISOString(), jobs,
+    settings:{buffer:S.buffer, remLead:S.remLead, nav:S.nav, shortcut:S.shortcut, links:S.links}}, null, 1);
+  const name = `driver-backup-${ymd(new Date())}.json`;
+  const file = new File([data], name, {type:'application/json'});
+  try{
+    if (navigator.canShare && navigator.canShare({files:[file]})) await navigator.share({files:[file], title:name});
+    else { const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = name; document.body.appendChild(a); a.click(); a.remove(); }
+    S.lastBackup = Date.now(); saveSet(); render(); refreshLastBackup(); toast('已匯出備份');
+  }catch(e){ if (e.name !== 'AbortError') toast('備份失敗：' + e.message, 5000); }
+}
+function refreshLastBackup(){
+  $('#s_last').textContent = S.lastBackup ? `上次備份：${fmtDate(new Date(S.lastBackup))} ${hm(new Date(S.lastBackup))}` : '還沒有備份';
+}
+$('#importFile').addEventListener('change', async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try{
+    const d = JSON.parse(await f.text());
+    const incoming = Array.isArray(d.jobs) ? d.jobs.filter(j => j && j.id && j.date && j.pickup && Array.isArray(j.stops)) : null;
+    if (!incoming) throw new Error('不是有效的備份檔');
+    if (!confirm(`備份內有 ${incoming.length} 個行程。\n按「確定」合併到現有資料（相同行程會被備份版本取代）。`)) return;
+    incoming.forEach(j => { if (!Array.isArray(j.expenses)) j.expenses = []; delete j.route; });
+    const map = new Map(jobs.map(j => [j.id, j]));
+    incoming.forEach(j => map.set(j.id, j));
+    jobs = [...map.values()];
+    if (d.settings && d.settings.links && !Object.keys(S.links).length) S.links = d.settings.links;
+    saveSet(); saveJobs(); render(); toast(`已匯入 ${incoming.length} 個行程`);
+  }catch(err){ toast('匯入失敗：' + err.message, 5000); }
+  finally{ e.target.value = ''; }
+});
+
+/* ---------- settings ---------- */
+function renderLinks(){
+  $('#s_links').innerHTML = Object.keys(OFFICIAL).map(c => {
+    const o = Object.assign({}, OFFICIAL[c], S.links[c] || {});
+    return `<div class="linkRow"><div class="k" style="margin-bottom:6px;font-size:14px;color:var(--ink);font-weight:600">${esc(AP[c].n)}</div>
+      <label class="f"><span>到港</span><input data-link="${c}" data-dir="a" value="${esc(o.a)}" inputmode="url" autocapitalize="off" spellcheck="false"></label>
+      <label class="f"><span>離港</span><input data-link="${c}" data-dir="d" value="${esc(o.d)}" inputmode="url" autocapitalize="off" spellcheck="false"></label></div>`;
+  }).join('');
+}
+function fillSettings(){
+  $('#s_buffer').value = S.buffer ?? 10; $('#s_remLead').value = S.remLead ?? 15;
+  $('#s_nav').value = S.nav || 'google'; $('#s_shortcut').value = S.shortcut || '接送提醒';
+  renderLinks(); refreshLastBackup();
+}
+['buffer','remLead','nav','shortcut'].forEach(k => {
+  const el = $('#s_' + k);
+  const set = () => { let v = el.value.trim(); if (k === 'buffer' || k === 'remLead') v = Math.max(0, parseInt(v) || 0); if (k === 'shortcut' && !v) v = '接送提醒'; S[k] = v; saveSet(); };
+  el.addEventListener('input', set);
+  el.addEventListener('change', () => { set(); render(); });
+});
+$('#s_links').addEventListener('input', e => {
+  const c = e.target.dataset.link, dir = e.target.dataset.dir; if (!c) return;
+  const v = e.target.value.trim();
+  S.links[c] = S.links[c] || {};
+  if (v && v !== OFFICIAL[c][dir]) S.links[c][dir] = v; else delete S.links[c][dir];
+  saveSet();
+});
+$('#linksReset').onclick = () => { S.links = {}; saveSet(); renderLinks(); toast('已還原預設網址'); };
+$('#doBackup').onclick = backup;
+$('#doImport').onclick = () => $('#importFile').click();
+$('#setClose').onclick = () => { closeSheet('#setSheet'); render(); if (currentId) renderDetail(); };
+$('#btnSet').onclick = () => { fillSettings(); openSheet('#setSheet'); };
+
+/* ---------- wiring ---------- */
+$('#fab').onclick = () => openForm(null);
+$('#formCancel').onclick = () => closeSheet('#formSheet');
+$('#formSave').onclick = saveForm;
+$('#formViewTrip').onclick = () => viewTrip(locQ(draft.pickup), draft.stops.map(locQ));
+$('#detailClose').onclick = () => { closeSheet('#detailSheet'); currentId = null; };
+$('#detailEdit').onclick = () => { const j = jobs.find(x => x.id === currentId); if (j) openForm(j); };
+$('#f_total').addEventListener('input', calcBal);
+$('#f_deposit').addEventListener('input', calcBal);
+$('#f_status').innerHTML = Object.entries(STATUS).map(([k,v]) => `<option value="${k}">${v}</option>`).join('');
+$('#locs').addEventListener('input', onLocField);
+$('#locs').addEventListener('change', onLocField);
+$('#locs').addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const a = b.dataset.act;
+  if (a === 'addStop'){ draft.stops.push(newLoc()); renderLocs(); return; }
+  if (a === 'kind'){ locOf(b).kind = b.dataset.v; renderLocs(); }
+  else if (a === 'rm'){ draft.stops.splice(+b.closest('.loc').dataset.k, 1); renderLocs(); }
+});
+$('#filters').addEventListener('click', e => {
+  const b = e.target.closest('[data-filter]'); if (!b) return;
+  filter = b.dataset.filter;
+  document.querySelectorAll('#filters button').forEach(x => x.classList.toggle('on', x === b));
+  render(); window.scrollTo(0, 0);
+});
+document.querySelector('main').addEventListener('click', e => {
+  const b = e.target.closest('[data-act]');
+  if (b){ if (b.dataset.act === 'new') openForm(null); else if (b.dataset.act === 'backup') backup(); return; }
+  const t = e.target.closest('.ticket'); if (t) openDetail(t.dataset.id);
+});
+document.querySelector('main').addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return; const t = e.target.closest('.ticket'); if (t) openDetail(t.dataset.id);
+});
+$('#detailBody').addEventListener('click', async e => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const j = jobs.find(x => x.id === currentId); if (!j) return;
+  switch (b.dataset.act){
+    case 'nav': navigate(locQ([j.pickup, ...j.stops][+b.dataset.i])); break;
+    case 'viewTrip': viewTrip(locQ(j.pickup), j.stops.map(locQ)); break;
+    case 'fr24': openUrl('https://www.flightradar24.com/data/flights/' + b.dataset.f.toLowerCase()); break;
+    case 'apBoard':
+      if (b.dataset.f && await copyText(b.dataset.f, true)) toast('已複製航班號碼 ' + b.dataset.f + '，可在網頁搜尋欄貼上', 3500);
+      openUrl(boardUrl(b.dataset.c, b.dataset.d)); break;
+    case 'wa': openUrl(waLink(j.phone)); break;
+    case 'waConfirm': openUrl(waLink(j.phone, confirmText(j))); break;
+    case 'wechat':
+      if (j.wechat && await copyText(j.wechat, true)) toast('已複製 WeChat ID，可在 WeChat 搜尋', 3500);
+      openWeChat(); break;
+    case 'wechatConfirm':
+      if (await copyText(confirmText(j), true)) toast('已複製確認訊息，在 WeChat 選擇聯絡人後貼上', 4000);
+      openWeChat(); break;
+    case 'copyConfirm': copyText(confirmText(j)); break;
+    case 'board': showBoard(j); break;
+    case 'status': j.status = b.dataset.v; saveJobs(); renderDetail(); render(); break;
+    case 'exAdd': {
+      const amt = parseMoney($('#exAmt').value);
+      if (amt == null || amt <= 0) return toast('請輸入支出金額');
+      j.expenses = j.expenses || [];
+      j.expenses.push({id:uid(), type:$('#exType').value, amt, note:$('#exNote').value.trim()});
+      saveJobs(); renderDetail(); render(); toast('已加入支出'); break;
+    }
+    case 'exDel': j.expenses = (j.expenses || []).filter(x => x.id !== b.dataset.x); saveJobs(); renderDetail(); render(); break;
+    case 'reminder': addReminder(j); break;
+    case 'ics': addCal(j); break;
+    case 'return': makeReturn(j); break;
+    case 'dup': duplicate(j); break;
+    case 'del':
+      if (confirm('刪除這個行程？刪除後無法復原。')){ jobs = jobs.filter(x => x.id !== j.id); saveJobs(); closeSheet('#detailSheet'); currentId = null; render(); toast('已刪除'); }
+      break;
+  }
+});
+$('#detailBody').addEventListener('change', e => {
+  const j = jobs.find(x => x.id === currentId); if (!j) return;
+  const a = e.target.dataset.act, m = e.target.dataset.mins;
+  if (a === 'depPaid' || a === 'balPaid'){ j[a] = e.target.checked; }
+  else if (m){ j[m] = parseMin(e.target.value); toast('車程已更新'); }
+  else return;
+  saveJobs(); renderDetail(); render();
+});
+$('#board').addEventListener('click', () => $('#board').classList.remove('open'));
+document.addEventListener('visibilitychange', () => { if (!document.hidden) render(); });
+
+/* home-screen icon */
+(function(){
+  try{
+    const c = document.createElement('canvas'); c.width = c.height = 180;
+    const x = c.getContext('2d');
+    x.fillStyle = '#1B5FAA'; x.fillRect(0, 0, 180, 180);
+    x.fillStyle = '#F2B705'; x.fillRect(0, 132, 180, 12);
+    x.fillStyle = '#fff'; x.font = 'bold 66px -apple-system,"PingFang TC",sans-serif';
+    x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('接送', 90, 76);
+    $('#touchIcon').href = c.toDataURL('image/png');
+  }catch(e){}
+})();
+
+render();
+</script>
+</body>
+</html>
